@@ -17,9 +17,7 @@ GROUP_BY = "GROUP BY "
 HAVING = "HAVING "
 
 
-def preprocess_query_semantic_data(query_semantic_layer: tuple[dict, dict]) -> dict[str, list]:
-    query = query_semantic_layer[0]
-    semantic_layer = query_semantic_layer[1]
+def preprocess_query_semantic_data(query: dict, semantic_layer: dict) -> dict[str, list]:
     filters = query.get("filters")
     metrics = semantic_layer.get("metrics", [])
     dimensions = semantic_layer.get("dimensions", [])
@@ -122,71 +120,77 @@ def has_metric_filter(filters: list[dict], columns: list[str]) -> bool:
     column_names = [x.split(".")[1] for x in columns]
     return any([f not in column_names for f in filter_fields])
 
+def build_query(query: dict, semantic_layer: dict) -> str:
+    # preprocess the data
+    data = preprocess_query_semantic_data(query, semantic_layer)
+
+    # get the metrics, dimensions, filters and joins
+    metrics = data.get("metrics")
+    dimensions = data.get("dimensions", [])
+    filters = data.get("filters", [])
+    joins = data.get("joins", [])
+
+    # get all tables and columns
+    tables, columns = get_all_tables_and_columns(metrics, dimensions)
+
+    # build the SQL query
+    select_stmt = build_select(metrics, dimensions)
+    # print(select_stmt)
+
+    from_stmt = build_from(joins, tables)
+    # print(from_stmt)
+
+    # if the filter is on non-metric columns, we need a where statement
+    where_stmt = ""
+    if filters:
+        if not has_metric_filter(filters, columns):
+            where_stmt = build_where(filters, columns)
+            # print(where_stmt)
+
+    # since metric is always present
+    # a group by statement is needed if there are other columns in addition to the metrics
+    group_by_stmt = ""
+    if len(columns) > 0:
+        group_by_stmt = build_groupby(columns)
+        # print(group_by_stmt)
+
+    # if the filter is on a metric column, we need a having statement
+    having_stmt = ""
+    if filters:
+        if has_metric_filter(filters, columns):
+            having_stmt = build_having(filters, columns)
+            # print(having_stmt)
+
+    # combine all the statements
+    sql_stmt = []
+    sql_stmt.append(select_stmt)
+    sql_stmt.append(from_stmt)
+    if where_stmt:
+        sql_stmt.append(where_stmt)
+    if group_by_stmt:
+        sql_stmt.append(group_by_stmt)
+    if having_stmt:
+        sql_stmt.append(having_stmt)
+
+    return sql_stmt
+
 if __name__ == "__main__":
     from pprint import pprint
     from data import query_semantic_layer_data
     from run_sql import query_bigquery
 
     # iterate over the query semantic layer data
-    for idx, semantic in enumerate(query_semantic_layer_data, 1):
-
-        # preprocess the data
-        data = preprocess_query_semantic_data(semantic)
-
-        # get the metrics, dimensions, filters and joins
-        metrics = data.get("metrics")
-        dimensions = data.get("dimensions", [])
-        filters = data.get("filters", [])
-        joins = data.get("joins", [])
-
-        # get all tables and columns
-        tables, columns = get_all_tables_and_columns(metrics, dimensions)
-
-        # build the SQL query
-        select_stmt = build_select(metrics, dimensions)
-        # print(select_stmt)
-
-        from_stmt = build_from(joins, tables)
-        # print(from_stmt)
-
-        # if the filter is on non-metric columns, we need a where statement
-        where_stmt = ""
-        if filters:
-            if not has_metric_filter(filters, columns):
-                where_stmt = build_where(filters, columns)
-                # print(where_stmt)
-
-        # since metric is always present
-        # a group by statement is needed if there are other columns in addition to the metrics
-        group_by_stmt = ""
-        if len(columns) > 0:
-            group_by_stmt = build_groupby(columns)
-            # print(group_by_stmt)
-
-        # if the filter is on a metric column, we need a having statement
-        having_stmt = ""
-        if filters:
-            if has_metric_filter(filters, columns):
-                having_stmt = build_having(filters, columns)
-                # print(having_stmt)
-
-        # combine all the statements
-        sql_stmt = []
-        sql_stmt.append(select_stmt)
-        sql_stmt.append(from_stmt)
-        if where_stmt:
-            sql_stmt.append(where_stmt)
-        if group_by_stmt:
-            sql_stmt.append(group_by_stmt)
-        if having_stmt:
-            sql_stmt.append(having_stmt)
-
-
+    for idx, (query, semantic_layer) in enumerate(query_semantic_layer_data, 1):
+        
+        # build the query
+        sql_stmt = build_query(query, semantic_layer)
+        
         print(f"Query#{idx}")
-
-        # print the data
-        pprint(data)
+        
+        # print the input data
+        pprint(query)
         print()
+        pprint(semantic_layer)
         
         # print the SQL statement
         print(f'SQL Query: {" ".join(sql_stmt)}')

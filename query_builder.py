@@ -1,3 +1,12 @@
+"""
+File: query_builder.py
+Description: A script to convert query-semantic pairs to SQL queries and run them on BigQuery
+
+Author: Prashant Patel <prashant.patel@gmx.com>
+Source: https://github.com/prp0x80/semantic_to_sql
+"""
+
+# https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax
 #   SELECT
 #     [ WITH differential_privacy_clause ]
 #     [ { ALL | DISTINCT } ]
@@ -42,6 +51,7 @@ def preprocess_query_semantic_data(query: dict, semantic_layer: dict) -> dict[st
 def get_all_tables_and_columns(metrics: list[dict], dimensions: list[dict]) -> tuple[list[str], list[str]]:
     projections = metrics + dimensions
     tables = list({x["table"] for x in projections})
+    # NOTE: we are using dimensions only for the columns
     columns = list({f'{x["table"]}.{x["sql"]}' for x in dimensions})
     return tables, columns
 
@@ -67,6 +77,7 @@ def build_select(metrics: list[dict], dimensions: list[dict]) -> str:
 
     if d:
         return SELECT + m + right_strip(d, ", ")
+
     return SELECT + right_strip(m, ", ")
 
 

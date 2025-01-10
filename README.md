@@ -8,7 +8,7 @@ Use this function to build and execute the query on collection of query-semantic
 ### Setup
 You will need to add a `.env` file with:
 * `DEFAULT_DATASET` - the BigQuery dataset you want to run queries on
-* `SERVICE_ACCOUNT_JSON` - the JSON key for the BigQuery service account that has permissions to run jobs
+* `SERVICE_ACCOUNT_JSON_PATH` - path to the JSON key file for the BigQuery service account that has permissions to run jobs
 * `MAX_RESULTS` - limit the number of rows to fetch
 
 Install dependencies with poetry:

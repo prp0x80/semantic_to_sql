@@ -47,8 +47,10 @@ HAVING = "HAVING "
 
 def preprocess_query_semantic_data(query: dict, semantic_layer: dict) -> dict[str, list]:
     
-    # remove the metrics key from query, as we have more structured metric definition in semantic layer
-    query.pop("metrics", None)
+    # remove the metrics and dimensions key from the query, as we have more structured metric definition in semantic layer
+    query_copy = query.copy()
+    query_copy.pop("metrics", None)
+    query_copy.pop("dimensions", None)
 
     # raise error if metrics is not present in data
     has_metrics = semantic_layer.get("metrics", None)
@@ -56,7 +58,7 @@ def preprocess_query_semantic_data(query: dict, semantic_layer: dict) -> dict[st
         raise ValueError("Metrics is missing in semantic layer")
 
     # merge query and semantic dictionary to create a single data dictionary
-    data = {**query, **semantic_layer}
+    data = {**query_copy, **semantic_layer}
 
     return data
 
@@ -228,7 +230,7 @@ def build_query(query: dict, semantic_layer: dict) -> str:
         sql_clauses.append(having_stmt)
 
     # join all the SQL clauses to create a sql query string
-    sql_query = " ".join(sql_clauses)
+    sql_query = "\n".join(sql_clauses)
     
     return sql_query
 
@@ -256,6 +258,6 @@ if __name__ == "__main__":
 
         # run the SQL statement
         print("Results:")
-        query_bigquery(sql_stmt)
+        print(query_bigquery(sql_stmt))
         print()
         print("="*100)

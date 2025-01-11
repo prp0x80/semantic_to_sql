@@ -78,7 +78,7 @@ def query_bigquery(sql_query: str):
             data = [
                 dict(row).values() for row in rows
             ]  # Convert rows to list of values
-            print(tabulate(data, headers=headers, tablefmt="grid"))
+            return tabulate(data, headers=headers, tablefmt="grid")
         else:
             print("Query returned no results.")
 

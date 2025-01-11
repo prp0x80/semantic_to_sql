@@ -16,5 +16,6 @@ Install dependencies with poetry:
 
 ### Usage
 
-Either run with `poetry run python query_builder.py`, or import into your code
+Either run with `poetry run python query_builder.py`, or import into your code  
 
+Run streamlit app with `streamlit run app.py`

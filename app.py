@@ -7,7 +7,7 @@ st.set_page_config(page_title="Demo", page_icon=None, layout="wide", initial_sid
 
 data = {f"Query#{idx}": pairs for idx, pairs in enumerate(query_semantic_layer_data, 1)}
 
-query_id = st.selectbox(label="Select query", options=data.keys())
+query_id = st.sidebar.selectbox(label="Select query", options=data.keys())
 
 query, semantic_layer = data[query_id]
 

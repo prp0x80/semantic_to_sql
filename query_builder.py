@@ -124,15 +124,16 @@ def build_from(joins: list[dict], tables: list[str]) -> str:
         from_stmt = FROM + tables[0]
     
     # raise error if no join clause when more than one table in data
-    elif len(tables) > 1 and not joins:
+    if len(tables) > 1 and not joins:
         raise ValueError("Missing join clause")
     
     # for more than one table, we build from clause using joins
-    else:
+    if len(tables) > 1:
         j = ""
         for join in joins:
             j += f'{join["one"]} JOIN {join["many"]} ON {join["join"]}\n'
         from_stmt = FROM + j.strip()
+    
     return from_stmt
 
 

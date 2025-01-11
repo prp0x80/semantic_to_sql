@@ -80,6 +80,13 @@ def right_strip(input_string: str, string_to_be_removed: str) -> str:
     return input_string
 
 
+def has_metric_filter(filters: list[dict], columns: list[str]) -> bool:
+    """Returns true, if any of the column from filters is not in column names"""
+    filter_fields = [x["field"] for x in filters]
+    column_names = [x.split(".")[1] for x in columns]
+    return any([f not in column_names for f in filter_fields])
+
+
 def build_select(metrics: list[dict], dimensions: list[dict]) -> str:
     
     # comma-separated string of metrics
@@ -120,13 +127,6 @@ def build_from(joins: list[dict], tables: list[str]) -> str:
     return from_stmt
 
 
-def build_groupby(columns: list[str]) -> str | None:
-    
-    # we need group by only if there are columns along with the metrics
-    if len(columns) > 0:
-        return GROUP_BY + ", ".join(columns)
-
-
 def build_where(filters: list[dict], columns: list[str]) -> str | None:
 
     where_stmt = ""
@@ -153,6 +153,13 @@ def build_where(filters: list[dict], columns: list[str]) -> str | None:
     return where_stmt
 
 
+def build_groupby(columns: list[str]) -> str | None:
+    
+    # we need group by only if there are columns along with the metrics
+    if len(columns) > 0:
+        return GROUP_BY + ", ".join(columns)
+
+
 def build_having(filters: list[dict], columns: list[str]) -> str | None:
 
     having_stmt = ""
@@ -177,12 +184,6 @@ def build_having(filters: list[dict], columns: list[str]) -> str | None:
     
     return having_stmt
 
-
-def has_metric_filter(filters: list[dict], columns: list[str]) -> bool:
-    """Returns true, if any of the column from filters is not in column names"""
-    filter_fields = [x["field"] for x in filters]
-    column_names = [x.split(".")[1] for x in columns]
-    return any([f not in column_names for f in filter_fields])
 
 def build_query(query: dict, semantic_layer: dict) -> str:
 

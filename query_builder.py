@@ -198,25 +198,28 @@ def build_query(query: dict, semantic_layer: dict) -> str:
     # get all tables and columns
     tables, columns = get_all_tables_and_columns(metrics, dimensions)
 
-    # build the SQL query
+    # build SQL clauses
     select_stmt = build_select(metrics, dimensions)
     from_stmt = build_from(joins, tables)
     where_stmt = build_where(filters, columns)
     group_by_stmt = build_groupby(columns)
     having_stmt = build_having(filters, columns)
 
-    # combine all the statements
-    sql_stmt = []
-    sql_stmt.append(select_stmt)
-    sql_stmt.append(from_stmt)
+    # combine all the SQL clauses
+    sql_clauses = []
+    sql_clauses.append(select_stmt)
+    sql_clauses.append(from_stmt)
     if where_stmt:
-        sql_stmt.append(where_stmt)
+        sql_clauses.append(where_stmt)
     if group_by_stmt:
-        sql_stmt.append(group_by_stmt)
+        sql_clauses.append(group_by_stmt)
     if having_stmt:
-        sql_stmt.append(having_stmt)
+        sql_clauses.append(having_stmt)
 
-    return " ".join(sql_stmt)
+    # join all the SQL clauses to create a sql query string
+    sql_query = " ".join(sql_clauses)
+    
+    return sql_query
 
 if __name__ == "__main__":
     from pprint import pprint

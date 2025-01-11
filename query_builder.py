@@ -50,6 +50,11 @@ def preprocess_query_semantic_data(query: dict, semantic_layer: dict) -> dict[st
     # remove the metrics key from query, as we have more structured metric definition in semantic layer
     query.pop("metrics", None)
 
+    # raise error if metrics is not present in data
+    has_metrics = semantic_layer.get("metrics", None)
+    if not has_metrics:
+        raise ValueError("Metrics is missing in semantic layer")
+
     # merge query and semantic dictionary to create a single data dictionary
     data = {**query, **semantic_layer}
 
@@ -117,7 +122,11 @@ def build_from(joins: list[dict], tables: list[str]) -> str:
     # for a single table we return from clause with the table
     if len(tables) == 1:
         from_stmt = FROM + tables[0]
-
+    
+    # raise error if no join clause when more than one table in data
+    elif len(tables) > 1 and not joins:
+        raise ValueError("Missing join clause")
+    
     # for more than one table, we build from clause using joins
     else:
         j = ""
